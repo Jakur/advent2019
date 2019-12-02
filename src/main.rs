@@ -27,15 +27,16 @@ impl fmt::Display for Answer {
 }
 
 fn main() {
-    // let mut file = File::open("src/inputs/1.txt").unwrap();
-    // let mut input = String::new();
-    // file.read_to_string(&mut input).unwrap();
-    // println!("{}", p1(&input));
-    let mut file = File::open("src/inputs/2.txt").unwrap();
+    let problem = 2;
+    let mut file = File::open(format!("src/inputs/{}.txt", problem)).unwrap();
     let mut input = String::new();
     file.read_to_string(&mut input).unwrap();
-    // let input = "1,9,10,3,2,3,11,0,99,30,40,50\n".to_string();
-    println!("{}", p2(&input));
+    let output = match problem {
+        1 => p1(&input),
+        2 => p2(&input),
+        _ => unimplemented!(),
+    };
+    println!("{}", output);
 }
 
 fn p1(input: &str) -> Answer {
