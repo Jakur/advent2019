@@ -1,6 +1,5 @@
 use std::cmp::{max, min};
 use std::fmt;
-
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -35,23 +34,7 @@ pub fn get_input(problem: i32) -> String {
     input
 }
 
-#[test]
-fn main() {
-    let problem = 4;
-    let mut file = File::open(format!("src/inputs/{}.txt", problem)).unwrap();
-    let mut input = String::new();
-    file.read_to_string(&mut input).unwrap();
-    let output = match problem {
-        1 => p1(&input),
-        2 => p2(&input),
-        3 => p3(&input),
-        4 => p4(&input),
-        _ => unimplemented!(),
-    };
-    println!("{}", output);
-}
-
-fn p1(input: &str) -> Answer {
+pub fn p1(input: &str) -> Answer {
     let vec: Vec<_> = input
         .lines()
         .map(|s| (s.parse::<i32>().unwrap() / 3) - 2)
@@ -72,42 +55,110 @@ fn p1(input: &str) -> Answer {
     Answer::new(simple_sum, total)
 }
 
-fn run_intcode(mut vec: Vec<i32>) -> i32 {
+fn mode_fn(mode: i32, pos: usize, vec: &Vec<i32>) -> Option<i32> {
+    // assert_eq!(mode, 0);
+    let value = vec.get(pos);
+    let output = match mode {
+        0 => value.and_then(|v| vec.get(*v as usize)),
+        1 => value,
+        _ => {
+            println!("{}", mode);
+            println!("{}", pos);
+            println!("{:?}", vec);
+            unimplemented!()
+        }
+    };
+    output.map(|v| *v)
+}
+
+fn run_intcode(vec: &mut Vec<i32>, input: Vec<i32>) -> Vec<i32> {
     let mut ptr = 0;
+    let mut output = Vec::new();
+    let mut input = input.into_iter();
+
     loop {
-        let v1 = vec[ptr + 1] as usize;
-        let v2 = vec[ptr + 2] as usize;
-        let v3 = vec[ptr + 3] as usize;
-        match vec[ptr] {
-            1 => vec[v3] = vec[v1] + vec[v2],
-            2 => vec[v3] = vec[v1] * vec[v2],
+        let x = vec[ptr];
+        let opcode = vec[ptr] % 100;
+        let v1 = mode_fn((x / 100) % 10, ptr + 1, &vec);
+        let v2 = mode_fn((x / 1000) % 10, ptr + 2, &vec);
+        let loc3 = vec.get(ptr + 3).map(|v| *v as usize);
+        // let v3 = mode_fn((x / 10000) % 10, ptr + 3, &vec);
+        match opcode {
+            1 => {
+                vec[loc3.unwrap()] = v1.unwrap() + v2.unwrap();
+                ptr += 4;
+            }
+            2 => {
+                vec[loc3.unwrap()] = v1.unwrap() * v2.unwrap();
+                ptr += 4;
+            }
+            3 => {
+                let v = vec[ptr + 1] as usize;
+                vec[v] = input.next().unwrap();
+                ptr += 2;
+            }
+            4 => {
+                output.push(v1.unwrap());
+                ptr += 2;
+            }
+            5 => {
+                if v1.unwrap() != 0 {
+                    ptr = v2.unwrap() as usize;
+                } else {
+                    ptr += 3;
+                }
+            }
+            6 => {
+                if v1.unwrap() == 0 {
+                    ptr = v2.unwrap() as usize;
+                } else {
+                    ptr += 3;
+                }
+            }
+            7 => {
+                let out = (v1.unwrap() < v2.unwrap()).into();
+                vec[loc3.unwrap()] = out;
+                ptr += 4;
+            }
+            8 => {
+                let out = (v1.unwrap() == v2.unwrap()).into();
+                vec[loc3.unwrap()] = out;
+                ptr += 4;
+
+            }
             99 => break,
             _ => unimplemented!(),
         }
-        ptr += 4;
     }
-    vec[0]
+    output
 }
 
-fn p2(input: &str) -> Answer {
-    let mut vec: Vec<i32> = input
+fn parse_intcode(input: &str) -> Vec<i32> {
+    input
         .lines()
         .next()
         .unwrap()
         .split(",")
         .map(|v| v.parse().unwrap())
-        .collect();
+        .collect()
+}
+
+pub fn p2(input: &str) -> Answer {
+    let mut vec: Vec<i32> = parse_intcode(input);
     // Alter initial input as requested
     vec[1] = 12;
     vec[2] = 2;
-    let ans1 = run_intcode(vec.clone());
+    let mut part1 = vec.clone();
+    run_intcode(&mut part1, vec![]);
+    let ans1 = part1[0];
     for i in 0..100 {
         for j in 0..100 {
             let mut attempt = vec.clone();
             attempt[1] = i;
             attempt[2] = j;
-            let ans2 = run_intcode(attempt);
+            run_intcode(&mut attempt, vec![]);
             // Check for requested magic number
+            let ans2 = attempt[0];
             if ans2 == 19690720 {
                 return Answer::new(ans1, 100 * i + j);
             }
@@ -141,7 +192,7 @@ struct Segment {
     steps_from_start: i32,
 }
 
-fn p3(input: &str) -> Answer {
+pub fn p3(input: &str) -> Answer {
     let mut paths = Vec::new();
     for raw_path in input.lines() {
         let mut path = Vec::new();
@@ -285,4 +336,13 @@ pub fn p4(input: &str) -> Answer {
     }
 
     Answer::new(sums[0], sums[1])
+}
+
+pub fn p5(input: &str) -> Answer {
+    let vec = parse_intcode(input);
+    let mut part1 = vec.clone();
+    let mut output1 = run_intcode(&mut part1, vec![1]);
+    let mut part2 = vec.clone();
+    let mut output2 = run_intcode(&mut part2, vec![5]);
+    Answer::new(output1.pop().unwrap(), output2.pop().unwrap())
 }

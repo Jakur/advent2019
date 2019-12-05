@@ -4,6 +4,14 @@ version = "0.1.0"
 authors = ["Justin Kur <Justink97@hotmail.com>"]
 edition = "2018"
 
+[lib]
+name = "advent"
+path = "src/lib.rs"
+
+[[bin]]
+name = "advent2019"
+path = "src/main.rs"
+
 [dev-dependencies]
 criterion = "0.3"
 

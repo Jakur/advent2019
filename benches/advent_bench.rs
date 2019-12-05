@@ -1,5 +1,6 @@
+
+use advent::{get_input, p4};
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use advent2019::{get_input, p4};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     let input = get_input(4);
