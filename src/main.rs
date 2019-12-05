@@ -1,7 +1,7 @@
 use advent::{get_input, p1, p2, p3, p4, p5};
 
 fn main() {
-    let problem = 5;
+    let problem = 2;
     let input = get_input(problem);
     let output = match problem {
         1 => p1(&input),
