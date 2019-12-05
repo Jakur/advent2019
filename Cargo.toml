@@ -4,4 +4,10 @@ version = "0.1.0"
 authors = ["Justin Kur <Justink97@hotmail.com>"]
 edition = "2018"
 
-[dependencies]
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "advent_bench"
+harness = false
+

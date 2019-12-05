@@ -4,7 +4,7 @@ use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
 
-struct Answer {
+pub struct Answer {
     p1: String,
     p2: String,
 }
@@ -28,6 +28,14 @@ impl fmt::Display for Answer {
     }
 }
 
+pub fn get_input(problem: i32) -> String {
+    let mut file = File::open(format!("src/inputs/{}.txt", problem)).unwrap();
+    let mut input = String::new();
+    file.read_to_string(&mut input).unwrap();
+    input
+}
+
+#[test]
 fn main() {
     let problem = 4;
     let mut file = File::open(format!("src/inputs/{}.txt", problem)).unwrap();
@@ -261,7 +269,7 @@ fn digits(
     total
 }
 
-fn p4(input: &str) -> Answer {
+pub fn p4(input: &str) -> Answer {
     let mut split = input.split("-");
     let start: i32 = split.next().unwrap().parse().unwrap();
     let end: i32 = split.next().unwrap().parse().unwrap();
