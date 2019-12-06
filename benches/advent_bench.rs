@@ -3,11 +3,13 @@ use advent::*;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let input = get_input(2);
-    c.bench_function(&format!("Part {}", input), |b| {
-        b.iter(|| p2(black_box(&input)))
+    let problem = 6;
+    let input = get_input(problem);
+    let func = problem_multiplex(problem);
+    c.bench_function(&format!("Part {}", problem), |b| {
+        b.iter(|| func(black_box(&input)))
     });
-    //println!("{}", p4(&input))
+    println!("{}", func(&input))
 }
 
 criterion_group!(benches, criterion_benchmark);
