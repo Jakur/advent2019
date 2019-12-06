@@ -374,7 +374,7 @@ pub fn p5(input: &str) -> Answer {
 }
 
 struct Node<'a> {
-    parent: &'a str, // parents
+    parent: &'a str, // parent
     children: Vec<&'a str>,
 }
 
@@ -431,13 +431,13 @@ pub fn p6(input: &str) -> Answer {
     if san_parent == you_parent {
         return Answer::new(total_orbits, 0);
     }
-    let mut santa_ancestors = HashMap::new();
+    let mut santa_ancestors = HashSet::new();
     let mut node = nodes.get(san_parent).unwrap();
     depth = santa_depth;
-    santa_ancestors.insert(san_parent, depth);
+    santa_ancestors.insert(san_parent);
     while node.parent != "" {
         depth -= 1;
-        santa_ancestors.insert(node.parent, depth);
+        santa_ancestors.insert(node.parent);
         node = nodes.get(node.parent).unwrap();
     }
     assert_ne!(santa_ancestors.get("COM"), None);
@@ -445,7 +445,7 @@ pub fn p6(input: &str) -> Answer {
     depth = you_depth;
     let lca_depth = loop {
         depth -= 1;
-        if santa_ancestors.contains_key(node.parent) {
+        if santa_ancestors.contains(node.parent) {
             break depth;
         }
         node = nodes.get(node.parent).unwrap();
