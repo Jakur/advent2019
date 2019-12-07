@@ -12,6 +12,9 @@ path = "src/lib.rs"
 name = "advent2019"
 path = "src/main.rs"
 
+[dependencies]
+permutohedron = "0.2.4"
+
 [dev-dependencies]
 criterion = "0.3"
 

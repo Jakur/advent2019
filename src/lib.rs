@@ -5,6 +5,9 @@ use std::io::prelude::*;
 
 use std::collections::{HashMap, HashSet};
 
+mod intcode;
+use intcode::{parse_intcode, IntMachine};
+
 pub fn problem_multiplex(problem: i32) -> fn(&str) -> Answer {
     match problem {
         1 => p1,
@@ -13,6 +16,7 @@ pub fn problem_multiplex(problem: i32) -> fn(&str) -> Answer {
         4 => p4,
         5 => p5,
         6 => p6,
+        7 => p7,
         _ => unimplemented!(),
     }
 }
@@ -69,110 +73,22 @@ pub fn p1(input: &str) -> Answer {
     Answer::new(simple_sum, total)
 }
 
-fn mode_fn(mode: i32, pos: usize, vec: &Vec<i32>) -> Option<i32> {
-    // assert_eq!(mode, 0);
-    let value = vec.get(pos);
-    let output = match mode {
-        0 => value.and_then(|v| vec.get(*v as usize)),
-        1 => value,
-        _ => {
-            println!("{}", mode);
-            println!("{}", pos);
-            println!("{:?}", vec);
-            unimplemented!()
-        }
-    };
-    output.map(|v| *v)
-}
-
-fn run_intcode(vec: &mut Vec<i32>, input: Vec<i32>) -> Vec<i32> {
-    let mut ptr = 0;
-    let mut output = Vec::new();
-    let mut input = input.into_iter();
-
-    loop {
-        let x = vec[ptr];
-        let opcode = vec[ptr] % 100;
-        let v1 = mode_fn((x / 100) % 10, ptr + 1, &vec);
-        let v2 = mode_fn((x / 1000) % 10, ptr + 2, &vec);
-        let loc3 = vec.get(ptr + 3).map(|v| *v as usize);
-        // let v3 = mode_fn((x / 10000) % 10, ptr + 3, &vec);
-        match opcode {
-            1 => {
-                vec[loc3.unwrap()] = v1.unwrap() + v2.unwrap();
-                ptr += 4;
-            }
-            2 => {
-                vec[loc3.unwrap()] = v1.unwrap() * v2.unwrap();
-                ptr += 4;
-            }
-            3 => {
-                let v = vec[ptr + 1] as usize;
-                vec[v] = input.next().unwrap();
-                ptr += 2;
-            }
-            4 => {
-                output.push(v1.unwrap());
-                ptr += 2;
-            }
-            5 => {
-                if v1.unwrap() != 0 {
-                    ptr = v2.unwrap() as usize;
-                } else {
-                    ptr += 3;
-                }
-            }
-            6 => {
-                if v1.unwrap() == 0 {
-                    ptr = v2.unwrap() as usize;
-                } else {
-                    ptr += 3;
-                }
-            }
-            7 => {
-                let out = (v1.unwrap() < v2.unwrap()).into();
-                vec[loc3.unwrap()] = out;
-                ptr += 4;
-            }
-            8 => {
-                let out = (v1.unwrap() == v2.unwrap()).into();
-                vec[loc3.unwrap()] = out;
-                ptr += 4;
-
-            }
-            99 => break,
-            _ => unimplemented!(),
-        }
-    }
-    output
-}
-
-fn parse_intcode(input: &str) -> Vec<i32> {
-    input
-        .lines()
-        .next()
-        .unwrap()
-        .split(",")
-        .map(|v| v.parse().unwrap())
-        .collect()
-}
-
 pub fn p2(input: &str) -> Answer {
     let mut vec: Vec<i32> = parse_intcode(input);
     // Alter initial input as requested
     vec[1] = 12;
     vec[2] = 2;
-    let mut part1 = vec.clone();
-    run_intcode(&mut part1, vec![]);
-    let ans1 = part1[0];
+    let mut machine = IntMachine::new(vec.clone());
+    machine.run(vec![], false);
+    let ans1 = machine.mem[0];
     let mut first = 0;
     let mut second = 0;
     let check = |a, b| {
-        let mut attempt = vec.clone();
-        attempt[1] = a;
-        attempt[2] = b;
-        run_intcode(&mut attempt, vec![]);
-        attempt[0]
+        let mut attempt = IntMachine::new(vec.clone());
+        attempt.mem[1] = a;
+        attempt.mem[2] = b;
+        attempt.run(vec![], false);
+        attempt.mem[0]
     };
     while first < 100 {
         // Check for requested magic number
@@ -366,10 +282,10 @@ pub fn p4(input: &str) -> Answer {
 
 pub fn p5(input: &str) -> Answer {
     let vec = parse_intcode(input);
-    let mut part1 = vec.clone();
-    let mut output1 = run_intcode(&mut part1, vec![1]);
-    let mut part2 = vec.clone();
-    let mut output2 = run_intcode(&mut part2, vec![5]);
+    let mut part1 = IntMachine::new(vec.clone());
+    let mut output1 = part1.run(vec![1], false);
+    let mut part2 = IntMachine::new(vec);
+    let mut output2 = part2.run(vec![5], false);
     Answer::new(output1.pop().unwrap(), output2.pop().unwrap())
 }
 
@@ -452,4 +368,49 @@ pub fn p6(input: &str) -> Answer {
     };
     let distance = santa_depth + you_depth - 2 * lca_depth;
     Answer::new(total_orbits, distance)
+}
+
+pub fn p7(input: &str) -> Answer {
+    use permutohedron::Heap;
+    let instructions = parse_intcode(input);
+    let mut options = vec![0, 1, 2, 3, 4];
+    let perms = Heap::new(&mut options);
+    let mut max1 = std::i32::MIN;
+    for perm in perms {
+        let mut output_signal = 0;
+        for phase in perm {
+            let mem = instructions.clone();
+            let mut machine = IntMachine::new(mem);
+            let out = machine.run(vec![phase, output_signal], false);
+            output_signal = out[0];
+        }
+        let thrust_signal = output_signal;
+        if thrust_signal > max1 {
+            max1 = thrust_signal;
+        }
+    }
+    let mut options2 = vec![5, 6, 7, 8, 9];
+    let perms = Heap::new(&mut options2);
+    let mut max2 = std::i32::MIN;
+    for perm in perms {
+        let mut halted = vec![false; 5];
+        let mut amp_ptr = 0;
+        let mut inputs: Vec<_> = perm.into_iter().map(|p| vec![p]).collect();
+        let mut machines = vec![IntMachine::new(instructions.clone()); 5];
+        inputs[0].push(0);
+        while !halted.iter().all(|x| *x) {
+            let active = &mut machines[amp_ptr];
+            let mut out = active.run(inputs[amp_ptr].drain(..).collect(), false);
+            if active.mem[active.ptr] == 99 {
+                halted[amp_ptr] = true;
+            }
+            amp_ptr = (amp_ptr + 1) % 5;
+            inputs[amp_ptr].append(&mut out);
+        }
+        let out_signal = inputs[0].pop().unwrap();
+        if out_signal > max2 {
+            max2 = out_signal;
+        }
+    }
+    Answer::new(max1, max2)
 }
