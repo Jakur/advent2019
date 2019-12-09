@@ -18,6 +18,7 @@ pub fn problem_multiplex(problem: i32) -> fn(&str) -> Answer {
         6 => p6,
         7 => p7,
         8 => p8,
+        9 => p9,
         _ => unimplemented!(),
     }
 }
@@ -75,7 +76,7 @@ pub fn p1(input: &str) -> Answer {
 }
 
 pub fn p2(input: &str) -> Answer {
-    let mut vec: Vec<i32> = parse_intcode(input);
+    let mut vec: Vec<_> = parse_intcode(input);
     // Alter initial input as requested
     vec[1] = 12;
     vec[2] = 2;
@@ -376,7 +377,7 @@ pub fn p7(input: &str) -> Answer {
     let instructions = parse_intcode(input);
     let mut options = vec![0, 1, 2, 3, 4];
     let perms = Heap::new(&mut options);
-    let mut max1 = std::i32::MIN;
+    let mut max1 = std::i64::MIN;
     for perm in perms {
         let mut output_signal = 0;
         for phase in perm {
@@ -392,7 +393,7 @@ pub fn p7(input: &str) -> Answer {
     }
     let mut options2 = vec![5, 6, 7, 8, 9];
     let perms = Heap::new(&mut options2);
-    let mut max2 = std::i32::MIN;
+    let mut max2 = std::i64::MIN;
     for perm in perms {
         let mut halted = vec![false; 5];
         let mut amp_ptr = 0;
@@ -465,4 +466,13 @@ pub fn p8(input: &str) -> Answer {
         part2.push_str("\n");
     }
     Answer::new(ones * twos, part2)
+}
+
+pub fn p9(input: &str) -> Answer {
+    let mem = parse_intcode(input);
+    let mut machine = IntMachine::new(mem.clone());
+    let out1 = machine.run(vec![1], false);
+    machine = IntMachine::new(mem);
+    let out2 = machine.run(vec![2], false);
+    Answer::new(out1[0], out2[0])
 }
