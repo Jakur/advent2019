@@ -15,6 +15,10 @@ impl IntMachine {
         }
     }
 
+    pub fn halted(&self) -> bool {
+        self.mem[self.ptr] == 99
+    }
+
     fn f_parm(&self, offset: usize, mode: i64) -> String {
         let loc = self.ptr + offset;
         match mode {
@@ -98,11 +102,11 @@ impl IntMachine {
             }
             match opcode {
                 1 => {
-                    self.mem_write(loc3.unwrap(), v1.unwrap() + v2.unwrap());
+                    self.mem_write(loc3.unwrap(), v1.unwrap_or(0) + v2.unwrap_or(0));
                     self.ptr += 4;
                 }
                 2 => {
-                    self.mem_write(loc3.unwrap(), v1.unwrap() * v2.unwrap());
+                    self.mem_write(loc3.unwrap(), v1.unwrap_or(0) * v2.unwrap_or(0));
                     self.ptr += 4;
                 }
                 3 => {
