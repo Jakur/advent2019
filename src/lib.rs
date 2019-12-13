@@ -1,11 +1,14 @@
 pub use std::cmp::{max, min};
-pub use std::fmt;
-pub use std::collections::{HashMap, HashSet};
 
+pub use std::collections::{HashMap, HashSet};
+pub use std::fmt;
 pub mod intcode;
 pub use intcode::{parse_intcode, IntMachine};
 
 pub mod p1;
+pub mod p10;
+pub mod p11;
+pub mod p12;
 pub mod p2;
 pub mod p3;
 pub mod p4;
@@ -14,8 +17,7 @@ pub mod p6;
 pub mod p7;
 pub mod p8;
 pub mod p9;
-pub mod p10;
-pub mod p11;
+
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -33,6 +35,7 @@ pub fn problem_multiplex(problem: i32) -> fn(&str) -> Answer {
         9 => p9::p9,
         10 => p10::p10,
         11 => p11::p11,
+        12 => p12::p12,
         _ => unimplemented!(),
     }
 }
