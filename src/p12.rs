@@ -99,11 +99,10 @@ fn triple_lcm(a: i64, b: i64, c: i64) -> i64 {
 }
 
 fn long_sim(mut moons: Vec<SimpleMoon>) -> i64 {
-    let init_pos = moons.clone();
+    // let init_pos = moons.clone();
     let len = moons.len();
     // This turns out to be big enough
     for count in 1..1000000 {
-        let even = (count % 2) == 0;
         for i in 0..len {
             for j in 0..len {
                 let m2 = moons[j];
@@ -114,37 +113,36 @@ fn long_sim(mut moons: Vec<SimpleMoon>) -> i64 {
         for m in moons.iter_mut() {
             m.update_pos();
         }
-        let eq = moons
-            .iter()
-            .zip(init_pos.iter())
-            .all(|(m1, m2)| m1.pos == m2.pos);
-        if even && eq {
-            return count;
+        let eq = moons.iter().all(|m1| m1.vel == 0);
+        if eq {
+            return count * 2; // Half way through the oscillation
         }
     }
     unimplemented!()
 }
 
 pub fn p12(input: &str) -> Answer {
-    let mut moons: Vec<_> = input
+    let moons: Vec<_> = input
         .lines()
         .map(|line| Moon::new(Point::parse_line(line)))
         .collect();
     let len = moons.len();
 
+    let mut p1 = moons.clone();
+
     for _ in 0..1000 {
         for i in 0..len {
             for j in 0..len {
-                let m2 = moons[j].position.clone();
-                let m1 = &mut moons[i];
+                let m2 = p1[j].position.clone();
+                let m1 = &mut p1[i];
                 m1.update_vel(m2);
             }
         }
-        for m in moons.iter_mut() {
+        for m in p1.iter_mut() {
             m.update_pos();
         }
     }
-    let ans1: i32 = moons.iter().map(|m| m.energy()).sum();
+    let ans1: i32 = p1.iter().map(|m| m.energy()).sum();
     let xs = moons
         .clone()
         .into_iter()
