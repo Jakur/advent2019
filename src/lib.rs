@@ -10,6 +10,7 @@ pub mod p10;
 pub mod p11;
 pub mod p12;
 pub mod p13;
+pub mod p14;
 pub mod p2;
 pub mod p3;
 pub mod p4;
@@ -38,6 +39,7 @@ pub fn problem_multiplex(problem: i32) -> fn(&str) -> Answer {
         11 => p11::p11,
         12 => p12::p12,
         13 => p13::p13,
+        14 => p14::p14,
         _ => unimplemented!(),
     }
 }
