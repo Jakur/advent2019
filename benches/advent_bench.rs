@@ -1,9 +1,8 @@
-
 use advent::*;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let problem = 14;
+    let problem = 15;
     let input = get_input(problem);
     let func = problem_multiplex(problem);
     c.bench_function(&format!("Part {}", problem), |b| {
